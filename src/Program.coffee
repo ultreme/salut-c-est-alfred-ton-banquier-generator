@@ -10,12 +10,15 @@ class Program
         boolean: true
       'voice':
         alias:   'V'
+      'out':
+        alias:   'o'
     @options.usage ?= [
       "  Usage: salut-c-est-alfred-ton-banquier-generator [options] method [arguments...]"
       ""
       "    Options:"
       ""
       "       -v, --verbose        verbose"
+      "       -o, --out <file>     output file"
       "       -V, --voice <voice>  voice"
       ]
     flatiron.app.use flatiron.plugins.cli, @options
