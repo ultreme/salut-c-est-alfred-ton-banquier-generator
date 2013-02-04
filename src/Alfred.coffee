@@ -1,5 +1,7 @@
 fs =   require 'fs'
 path = require 'path'
+#audiosprite = require 'audiosprite'
+
 
 class Alfred
   constructor: (@options = {}) ->
@@ -13,8 +15,11 @@ class Alfred
     path.join @options.voicesDirectory, @options.voice, "#{word}.wav"
 
   say: (words, fn) =>
+    cmd = ['sox']
     for word in words
-      console.log @getWordPath word
+      cmd.push @getWordPath word
+    cmd.push "/tmp/test.wav"
+    console.log cmd.join ' '
 
 module.exports =
   Alfred: Alfred

@@ -19,25 +19,32 @@ class Program
       "       -V, --voice <voice>  voice"
       ]
     flatiron.app.use flatiron.plugins.cli, @options
-    @alfred = new Alfred @options
 
   setupHandlers: =>
     flatiron.app.cmd /list-voices/, @listVoices
     flatiron.app.cmd /say (.+)/,    @say
 
   listVoices: (fn = null) =>
+    do @getAlfred
     @alfred.listVoices (err, voices) =>
       for voice in voices
         flatiron.app.log.info voice
     do fn if fn
 
   say: (words, fn = null) =>
+    do @getAlfred
     words = words.split /\ /
     @alfred.say words, (err, data) =>
       flatiron.app.log.info err, data
     do fn if fn
 
-  run: => do flatiron.app.start
+  getAlfred: =>
+    @options extends flatiron.app.argv
+    @alfred = new Alfred @options
+    return @alfred
+
+  run: =>
+    do flatiron.app.start
 
   @getVersion: -> JSON.parse(require('fs').readFileSync "#{__dirname}/../package.json", 'utf8').version
 
