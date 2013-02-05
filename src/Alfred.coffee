@@ -24,7 +24,7 @@ class Alfred
 
   getWordPath: (word, voice = null) =>
     voice ?= @options.voice
-    path.join @options.voicesDirectory, voice, "#{word}.wav"
+    path.join @options.voicesDirectory, voice, "#{word}.mp3"
 
   getDestFile: (file) =>
     file ?= 'alfred.mp3'
@@ -52,10 +52,11 @@ class Alfred
   _sayList: (words, destFile = null, fn) =>
     cmd = [@getSox()]
     @listWords (err, voiceWords) =>
-      voices = [voice for voice of voiceWords][0]
       for word in words
-        voice = voices[Math.floor(voices.length * Math.random())]
-        cmd.push @getWordPath word, voice
+        voicesWithWord = @getVoicesThatHaveWordSync word
+        voice = voicesWithWord[Math.floor(Math.random() * voicesWithWord.length)]
+        file = @getWordPath word, voice
+        cmd.push file
       cmd.push destFile
       console.log cmd
       fn false, cmd
@@ -128,9 +129,12 @@ class Alfred
 
   listVoiceWords: (voice, fn) =>
     fs.readdir @getVoicePath(voice), (err, files) =>
+      clean_files = []
       for k, file of files
-        files[k] = files[k][..file.length - 5]
-      fn err, files
+        word = files[k][..file.length - 5]
+        unless word in clean_files
+          clean_files.push word
+      fn err, clean_files
 
   _sayRandom: (length = 10, destFile = null, fn) =>
     cmd = [@getSox()]
