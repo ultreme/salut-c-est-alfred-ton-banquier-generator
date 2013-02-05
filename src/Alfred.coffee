@@ -55,20 +55,37 @@ class Alfred
         fn err, data
 
   sayAlfredPass: (length = 42, fn) =>
-    words = ['c_alfred_voici_ton_code']
+    words = ['attention_voici_la_passphrase']
     @listWords (err, voiceWords) =>
     chars = []
     chars = chars.concat ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     chars = chars.concat ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    chars = chars.concat ['!', '#', '$', '%', '&', '(', ')', '+', ',', '-', '_', '^', ';', '=', '@', ']', '[']
+    chars = chars.concat ['!', '#', '%', '&', '(', ')', '+', ',', '-', '_', '^', ';', '=', '@', ']', '[']
+    chars = chars.concat ['deux-points', 'pipe', 'point', 'redir-droite', 'redir-gauche', 'etoile', 'interrogation', 'quote']
+    #chars = chars.concat ['backslash', '$', 'double-quote', 'slash']
+    chars = chars.concat ['bucheron', 'electroencephalogramme', 'electronarcose', 'encyclopedie', 'habituellement', 'hypocondriaque', 'lampadaire', 'mephistophelique', 'noisette', 'ornithorynque', 'radiateur', 'tournevis']
+    passphrase_translate =
+      backslash:      '\\'
+      'deux-points':  ':'
+      'double-quote': '"'
+      pipe:           '|'
+      'redir-droite': '>'
+      'redir-gauche': '<'
+      slash:          '/'
+      etoile:         '*'
+      interrogation:  '?'
+      quote:          "'"
     for i in [0..length]
       words.push chars[Math.floor(Math.random() * chars.length)]
     words.push 'voila'
-    passphrase = words[1...words.length-1].join '-'
-    destFile = @getDestFile "alfred_#{passphrase}.mp3"
+    passphrase = []
+    for word in words[1...words.length-1]
+      passphrase.push if passphrase_translate[word]? then passphrase_translate[word] else word
+    passphrase_str = passphrase.join ''
+    destFile = @getDestFile "alfred_#{passphrase_str}.mp3"
     @saveSayList words, destFile, (err, data) =>
       system 'play', [destFile]
-      console.log passphrase
+      console.log passphrase_str
 
   getVoices: (fn) =>
     if @options.voice
