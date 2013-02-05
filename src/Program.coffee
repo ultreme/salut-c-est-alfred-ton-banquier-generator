@@ -20,12 +20,29 @@ class Program
       "       -v, --verbose        verbose"
       "       -o, --out <file>     output file"
       "       -V, --voice <voice>  voice"
+      ""
+      "    Commands:"
+      ""
+      "       list-voices"
+      "       list-words"
+      "       say <word1> <word2> <...>"
+      "       say-random <length>"
+      ""
       ]
     flatiron.app.use flatiron.plugins.cli, @options
 
   setupHandlers: =>
-    flatiron.app.cmd /list-voices/, @listVoices
-    flatiron.app.cmd /say (.+)/,    @say
+    flatiron.app.cmd /list-voices/,      @listVoices
+    flatiron.app.cmd /list-words/,       @listWords
+    flatiron.app.cmd /say (.+)/,         @say
+    flatiron.app.cmd /say-random (.+)/,  @sayRandom
+
+  listWords: (fn = null) =>
+    do @getAlfred
+    @alfred.listWords (err, voiceWords) =>
+      for voice, words of voiceWords
+        flatiron.app.log.info "#{voice}: ", words.join(',')
+    do fn if fn
 
   listVoices: (fn = null) =>
     do @getAlfred
@@ -38,6 +55,12 @@ class Program
     do @getAlfred
     words = words.split /\ /
     @alfred.say words, (err, data) =>
+      flatiron.app.log.info err, data
+    do fn if fn
+
+  sayRandom: (length, fn = null) =>
+    do @getAlfred
+    @alfred.sayRandom length, (err, data) =>
       flatiron.app.log.info err, data
     do fn if fn
 

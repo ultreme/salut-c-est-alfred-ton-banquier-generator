@@ -1,6 +1,7 @@
 {spawn, exec} = require 'child_process'
 
 call = (command, args = [], fn = null) ->
+  args = args.map (b) -> "\"#{b}\""
   exec "#{command} #{args.join(' ')}", (err, stdout, stderr) ->
     if err?
       console.error "Error :"
