@@ -7,10 +7,14 @@ path = require 'path'
 class Alfred
   constructor: (@options = {}) ->
     @options.voicesDirectory ?= path.join __dirname, '../voices'
+    @cache = {}
     return @
 
   getSox: =>
     return 'sox'
+
+  getPlay: =>
+    return 'play'
 
   listVoices: (fn) =>
     fs.readdir @options.voicesDirectory, fn
@@ -26,13 +30,23 @@ class Alfred
     file ?= 'alfred.mp3'
     return @options.out || path.join("/tmp", file)
 
+  getVoicesThatHaveWordSync: (theWord) =>
+    voices = []
+    for voice, words of @cache.voicesWords
+      for word in words
+        voices.push voice if word is theWord
+    return voices
+
   _say: (words, destFile, fn) =>
     cmd = [@getSox()]
-    @getVoices (err, voices) =>
+    @listWords (err, voiceWords) =>
       for word in words
-        voice = voices[Math.floor(voices.length * Math.random())]
-        cmd.push @getWordPath word, voice
+        voicesWithWord = @getVoicesThatHaveWordSync word
+        voice = voicesWithWord[Math.floor(Math.random() * voicesWithWord.length)]
+        file = @getWordPath word, voice
+        cmd.push file
       cmd.push destFile
+      #console.log cmd
       fn false, cmd
 
   _sayList: (words, destFile = null, fn) =>
@@ -84,14 +98,17 @@ class Alfred
     passphrase_str = passphrase.join ''
     destFile = @getDestFile "alfred_#{passphrase_str}.mp3"
     @saveSayList words, destFile, (err, data) =>
-      system 'play', [destFile]
+      system @getPlay(), [destFile]
       console.log passphrase_str
 
   getVoices: (fn) =>
     if @options.voice
       return fn false, [@options.voice]
+    @listVoices fn
 
   listWords: (fn) =>
+    if @cache?.voicesWords
+      return fn false, @cache.voicesWords
     voicesWords = {}
     todo = 0
     @getVoices (err, voices) =>
@@ -105,6 +122,7 @@ class Alfred
               for word in words
                 voicesWords[voice].push word
             unless --todo
+              @cache.voicesWords = voicesWords
               fn false, voicesWords
               #console.log "#{voice}:", words.join(',')
 
@@ -131,7 +149,6 @@ class Alfred
 
   saveSayRandom: (length, destFile = null, fn) =>
     @_sayRandom length, destFile, (err, cmd) =>
-      console.log 'test'
       [bin, args] = [cmd[0], cmd[1..]]
       console.log bin, args
       call bin, args, (err, data) =>
@@ -141,11 +158,10 @@ class Alfred
   sayRandom: (length, fn = null) =>
     destFile = @getDestFile()
     @saveSayRandom length, destFile, (err, data) =>
-      system 'play', [destFile]
+      system @getPlay(), [destFile]
 
   saveSay: (words, destFile = null, fn) =>
     @_say words, destFile, (err, cmd) =>
-      console.log 'test'
       [bin, args] = [cmd[0], cmd[1..]]
       console.log bin, args
       call bin, args, (err, data) =>
@@ -155,8 +171,7 @@ class Alfred
   say: (words, fn = null) =>
     destFile = @getDestFile()
     @saveSay words, destFile, (err, data) =>
-      #console.log err, data
-      system 'play', [destFile]
+      system @getPlay(), [destFile]
 
 module.exports =
   Alfred: Alfred
