@@ -104,7 +104,7 @@ class Alfred
 
   getVoices: (fn) =>
     if @options.voice
-      return fn false, [@options.voice]
+      return fn false, @options.voice.split /,/
     @listVoices fn
 
   listWords: (fn) =>
