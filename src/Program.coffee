@@ -27,6 +27,7 @@ class Program
       "       list-words"
       "       say <word1> <word2> <...>"
       "       say-random <length>"
+      "       alfred <length>"
       ""
       ]
     flatiron.app.use flatiron.plugins.cli, @options
@@ -35,7 +36,14 @@ class Program
     flatiron.app.cmd /list-voices/,      @listVoices
     flatiron.app.cmd /list-words/,       @listWords
     flatiron.app.cmd /say (.+)/,         @say
+    flatiron.app.cmd /alfred (.+)/,      @sayAlfred
     flatiron.app.cmd /say-random (.+)/,  @sayRandom
+
+  sayAlfred: (length = 20, fn = null) =>
+    do @getAlfred
+    @alfred.sayAlfredPass length, (err, data) =>
+      flatiron.app.log.info err, data
+    do fn if fn
 
   listWords: (fn = null) =>
     do @getAlfred

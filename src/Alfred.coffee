@@ -22,8 +22,9 @@ class Alfred
     voice ?= @options.voice
     path.join @options.voicesDirectory, voice, "#{word}.wav"
 
-  getDestFile: =>
-    return @options.out || "/tmp/salut-c-est-alfred-ton-banquier.mp3"
+  getDestFile: (file) =>
+    file ?= 'alfred.mp3'
+    return @options.out || path.join("/tmp", file)
 
   _say: (words, destFile, fn) =>
     cmd = [@getSox()]
@@ -34,10 +35,44 @@ class Alfred
       cmd.push destFile
       fn false, cmd
 
+  _sayList: (words, destFile = null, fn) =>
+    cmd = [@getSox()]
+    @listWords (err, voiceWords) =>
+      voices = [voice for voice of voiceWords][0]
+      for word in words
+        voice = voices[Math.floor(voices.length * Math.random())]
+        cmd.push @getWordPath word, voice
+      cmd.push destFile
+      console.log cmd
+      fn false, cmd
+
+  saveSayList: (words, destFile = null, fn) =>
+    @_sayList words, destFile, (err, cmd) =>
+      [bin, args] = [cmd[0], cmd[1..]]
+      console.log bin, args
+      call bin, args, (err, data) =>
+        console.log "Done. #{destFile}"
+        fn err, data
+
+  sayAlfredPass: (length = 42, fn) =>
+    words = ['c_alfred_voici_ton_code']
+    @listWords (err, voiceWords) =>
+    chars = []
+    chars = chars.concat ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+    chars = chars.concat ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    chars = chars.concat ['!', '#', '$', '%', '&', '(', ')', '+', ',', '-', '_', '^', ';', '=', '@', ']', '[']
+    for i in [0..length]
+      words.push chars[Math.floor(Math.random() * chars.length)]
+    words.push 'voila'
+    passphrase = words[1...words.length-1].join '-'
+    destFile = @getDestFile "alfred_#{passphrase}.mp3"
+    @saveSayList words, destFile, (err, data) =>
+      system 'play', [destFile]
+      console.log passphrase
+
   getVoices: (fn) =>
     if @options.voice
       return fn false, [@options.voice]
-    @listVoices fn
 
   listWords: (fn) =>
     voicesWords = {}
@@ -61,8 +96,6 @@ class Alfred
       for k, file of files
         files[k] = files[k][..file.length - 5]
       fn err, files
-
-  getRandomWordPath: =>
 
   _sayRandom: (length = 10, destFile = null, fn) =>
     cmd = [@getSox()]
