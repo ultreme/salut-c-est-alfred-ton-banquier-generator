@@ -3,3 +3,5 @@
 *#
 .#*
 node_modules
+voices/osx_*/*.mp3
+voices/osx_*/*.wav
