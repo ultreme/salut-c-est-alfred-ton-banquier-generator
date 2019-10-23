@@ -3,6 +3,16 @@ Salut, c'est Alfred, ton banquier !
 
 Pick random letters to generate complete audio coupons for the Thot Project.
 
+## How To Run (os x)
+```sh
+npm install -g coffee-scripts
+npm install
+brew install sox
+cake build
+./bin/salut-c-est-alfred-ton-banquier-generator alfred 2
+
+```
+
 Examples
 --------
 
